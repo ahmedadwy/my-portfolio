@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  // يضمن تشغيل الأنيميشن والـ Turbopack بشكل مستقر مع Tailwind
+  experimental: {
+    turbo: {},
+  },
 };
 
 export default nextConfig;
