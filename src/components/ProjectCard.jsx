@@ -1,16 +1,14 @@
 import { FaPlay } from 'react-icons/fa';
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, onClick }) {
   return (
-    <a 
-      href={project.videoUrl || "#"} 
-      target="_blank" 
-      rel="noopener noreferrer"
-      className="block bg-[#13151a] border border-zinc-800/60 rounded-xl overflow-hidden group hover:border-indigo-500/50 transition-all duration-300 shadow-md"
+    <div 
+      onClick={() => onClick(project)} 
+      className="block bg-[#13151a] border border-zinc-800/60 rounded-xl overflow-hidden group hover:border-indigo-500/50 transition-all duration-300 shadow-md cursor-pointer"
     >
       
       {/* منطقة الصورة المصغرة وزر التشغيل */}
-      <div className="relative aspect-video overflow-hidden cursor-pointer">
+      <div className="relative aspect-video overflow-hidden">
         <img 
           src={project.thumbnail} 
           alt={project.title} 
@@ -44,6 +42,6 @@ export default function ProjectCard({ project }) {
           ))}
         </div>
       </div>
-    </a>
+    </div>
   );
 }
