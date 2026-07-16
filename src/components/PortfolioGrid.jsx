@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc } from 'firebase/firestore'; // شلنا orderBy عشان هنرتبها برمجياً أضمن
 import ProjectCard from './ProjectCard';
 import { FiX } from 'react-icons/fi';
 
@@ -13,10 +13,15 @@ export default function PortfolioGrid() {
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   useEffect(() => {
-    // 1. جلب المشاريع الحية
-    const q = query(collection(db, "projects"), orderBy("id", "desc"));
+    // 1. جلب المشاريع الحية (بدون orderBy من الفايربيز عشان نتجنب مشاكل الـ Indexing)
+    const q = query(collection(db, "projects"));
+    
     const unsubscribeProjects = onSnapshot(q, (snapshot) => {
-      const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // ⚡ التعديل السحري هنا: ترتيب المشاريع محلياً بناءً على رقم الـ order اللي جاي من الداشبورد
+      projs.sort((a, b) => (a.order || 0) - (b.order || 0));
+      
       setProjects(projs);
     });
 
@@ -106,7 +111,7 @@ export default function PortfolioGrid() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4 md:p-10"
           >
-            {/* ⚡ تم تنزيل الزرار لتحت باستخدام top-20 للموبايل و top-24 للشاشات الكبيرة */}
+            {/* ⚡ زر الإغلاق */}
             <button 
               onClick={() => setSelectedVideo(null)}
               className="absolute top-20 right-4 md:top-24 md:right-10 text-white hover:text-red-400 transition cursor-pointer p-3 bg-zinc-800/80 hover:bg-zinc-800 rounded-full border border-zinc-600 z-[1000] shadow-xl"
