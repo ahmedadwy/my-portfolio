@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../lib/firebase';
 import { doc, getDoc, collection, addDoc } from 'firebase/firestore';
 import { FaBehance, FaLinkedinIn, FaVimeoV, FaInstagram, FaWhatsapp } from 'react-icons/fa';
-import { FiFileText, FiSend } from 'react-icons/fi';
+import { FiFileText, FiSend, FiMail, FiUser } from 'react-icons/fi';
 
 export default function ContactForm() {
   const [name, setName] = useState("");
@@ -56,7 +57,6 @@ export default function ContactForm() {
     });
 
     try {
-      // 1. الإرسال لإيميلك
       await fetch("https://api.emailjs.com/api/v1.0/email/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +66,6 @@ export default function ContactForm() {
         }),
       });
 
-      // 2. الحفظ السحابي في Firebase
       await addDoc(collection(db, "messages"), {
         id: Date.now(),
         name: name,
@@ -77,134 +76,193 @@ export default function ContactForm() {
 
       setStatus("success");
       setName(""); setEmail(""); setMessage("");
+      setTimeout(() => setStatus("idle"), 5000); // إخفاء رسالة النجاح بعد 5 ثواني
     } catch (error) {
       console.error(error);
       setStatus("error");
+      setTimeout(() => setStatus("idle"), 5000);
     }
   };
 
+  // إعدادات الأنيميشن
+  const fadeUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+  };
+
   return (
-    <section id="contact" className="py-24 px-6 max-w-4xl mx-auto text-center relative">
-      {/* تأثير إضاءة خلفي خفيف */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-indigo-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+    <section id="contact" className="py-24 px-6 max-w-6xl mx-auto relative z-10">
+      
+      {/* تأثيرات الإضاءة الخلفية */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-600/10 blur-[150px] rounded-full pointer-events-none -z-10" />
 
-      <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent mb-3">
-        Let's Create Something Together
-      </h2>
-      <p className="text-zinc-500 text-xs font-semibold uppercase tracking-widest mb-16">Get in touch</p>
+      {/* 📝 العناوين (نفس الستايل المتدرج) */}
+      <div className="text-center mb-16">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500"
+        >
+          Let's Create Something Together
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-zinc-500 text-sm font-medium uppercase tracking-[0.2em]"
+        >
+          Get in touch
+        </motion.p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-8 items-start max-w-5xl mx-auto">
         
-        {/* العمود الأيسر: معلومات التواصل والشبكات الاجتماعية */}
-        <div className="space-y-8 md:col-span-1">
-          <div>
-            <h4 className="text-sm font-semibold text-zinc-300 mb-2">Direct Contact</h4>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-zinc-500 hover:text-emerald-400 transition-colors duration-200 block mb-1">
-              + {whatsappNumber}
+        {/* 📱 العمود الأيسر: معلومات التواصل والشبكات الاجتماعية */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
+          className="space-y-10 lg:col-span-1 lg:pr-8"
+        >
+          <motion.div variants={fadeUp}>
+            <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500 mb-4">Direct Contact</h4>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 text-lg font-medium text-white hover:text-indigo-400 transition-colors duration-300">
+              <FaWhatsapp className="text-emerald-500 text-xl" />
+              +{whatsappNumber}
             </a>
-          </div>
+          </motion.div>
 
-          {/* عرض السوشيال ميديا الحية */}
-          <div>
-            <h4 className="text-sm font-semibold text-zinc-300 mb-3">Follow My Work</h4>
-            <div className="flex flex-wrap gap-3">
-              {socials.behance && (
-                <a href={socials.behance} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all duration-200" title="Behance">
-                  <FaBehance size={16} />
-                </a>
-              )}
-              {socials.vimeo && (
-                <a href={socials.vimeo} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all duration-200" title="Vimeo">
-                  <FaVimeoV size={14} />
-                </a>
-              )}
-              {socials.linkedin && (
-                <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all duration-200" title="LinkedIn">
-                  <FaLinkedinIn size={15} />
-                </a>
-              )}
-              {socials.instagram && (
-                <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800/80 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-all duration-200" title="Instagram">
-                  <FaInstagram size={15} />
-                </a>
-              )}
+          <motion.div variants={fadeUp}>
+            <h4 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500 mb-4">Follow My Work</h4>
+            <div className="flex flex-wrap gap-4">
+              {Object.entries(socials).map(([platform, url]) => {
+                if (!url) return null;
+                const Icon = platform === 'behance' ? FaBehance : platform === 'vimeo' ? FaVimeoV : platform === 'linkedin' ? FaLinkedinIn : FaInstagram;
+                return (
+                  <a 
+                    key={platform} 
+                    href={url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="w-12 h-12 rounded-2xl bg-[#090a0f] border border-white/5 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 hover:-translate-y-1 transition-all duration-300 shadow-lg"
+                    title={platform}
+                  >
+                    <Icon size={18} />
+                  </a>
+                );
+              })}
             </div>
-          </div>
+          </motion.div>
 
-          {/* زر تحميل الـ CV */}
           {cvFile && (
-            <div className="pt-2">
-              <a href={cvFile} download="ADWY_Resume" className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-400 bg-indigo-950/30 border border-indigo-500/20 px-5 py-3 rounded-xl hover:bg-indigo-950/50 hover:border-indigo-500/40 transition-all duration-200">
-                <FiFileText size={14} /> Download My CV
+            <motion.div variants={fadeUp} className="pt-4">
+              <a 
+                href={cvFile} 
+                download="Ahmed_Adwy_Resume" 
+                className="inline-flex items-center gap-3 text-sm font-semibold text-white bg-indigo-600/20 border border-indigo-500/30 px-6 py-3.5 rounded-2xl hover:bg-indigo-600 hover:border-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] transition-all duration-300 hover:-translate-y-1"
+              >
+                <FiFileText size={18} /> Download My CV
               </a>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        {/* العمود الأيمن: نموذج الإرسال */}
-        <form onSubmit={handleSendEmail} className="space-y-4 md:col-span-2 w-full">
-          {status === "success" && (
-            <div className="bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 text-xs p-4 rounded-xl text-center backdrop-blur-sm">
-              Message Sent & Synced to Cloud! ✓
-            </div>
-          )}
-          {status === "error" && (
-            <div className="bg-red-950/30 border border-red-500/20 text-red-400 text-xs p-4 rounded-xl text-center backdrop-blur-sm">
-              Error sending. Try again!
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input 
-              type="text" 
-              placeholder="Your Name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              disabled={status === "loading"} 
-              className="w-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/80 focus:border-indigo-500/50 focus:outline-none rounded-xl px-5 py-3.5 text-sm text-white transition-colors placeholder:text-zinc-600"
-              required 
-            />
-            <input 
-              type="email" 
-              placeholder="Your Email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              disabled={status === "loading"} 
-              className="w-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/80 focus:border-indigo-500/50 focus:outline-none rounded-xl px-5 py-3.5 text-sm text-white transition-colors placeholder:text-zinc-600"
-              required 
-            />
-          </div>
-          
-          <textarea 
-            placeholder="Message" 
-            rows="5" 
-            value={message} 
-            onChange={(e) => setMessage(e.target.value)} 
-            disabled={status === "loading"} 
-            className="w-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/80 focus:border-indigo-500/50 focus:outline-none rounded-xl px-5 py-3.5 text-sm text-white transition-colors placeholder:text-zinc-600 resize-none"
-            required
-          ></textarea>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <button 
-              type="submit" 
-              disabled={status === "loading"} 
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/10"
-            >
-              <FiSend size={14} />
-              {status === "loading" ? "Sending..." : "Send Message"}
-            </button>
+        {/* ✉️ العمود الأيمن: نموذج الإرسال (Glassmorphism Card) */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, type: "spring" }}
+          className="lg:col-span-2 w-full"
+        >
+          <form onSubmit={handleSendEmail} className="bg-[#090a0f] border border-white/5 p-8 sm:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
             
-            <a 
-              href={whatsappUrl} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="w-full py-3.5 rounded-xl border border-emerald-500/20 bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-400 flex items-center justify-center gap-2 font-medium text-sm transition-all duration-200"
-            >
-              <FaWhatsapp size={16} /> Chat on WhatsApp
-            </a>
-          </div>
-        </form>
+            {/* انعكاس إضاءة على الفورم */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
+
+            {/* رسائل التنبيه */}
+            <AnimatePresence>
+              {status === "success" && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm p-4 rounded-2xl flex items-center justify-center gap-2">
+                  Message Sent Successfully! We'll be in touch. ✨
+                </motion.div>
+              )}
+              {status === "error" && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-4 rounded-2xl flex items-center justify-center gap-2">
+                  Something went wrong. Please try again! ⚠️
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="space-y-5 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+                    <FiUser size={18} />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Your Name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    disabled={status === "loading"} 
+                    className="w-full bg-[#13151a] border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-2xl pl-11 pr-5 py-4 text-sm text-white transition-all placeholder:text-zinc-600 shadow-inner"
+                    required 
+                  />
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500">
+                    <FiMail size={18} />
+                  </div>
+                  <input 
+                    type="email" 
+                    placeholder="Your Email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    disabled={status === "loading"} 
+                    className="w-full bg-[#13151a] border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-2xl pl-11 pr-5 py-4 text-sm text-white transition-all placeholder:text-zinc-600 shadow-inner"
+                    required 
+                  />
+                </div>
+              </div>
+              
+              <textarea 
+                placeholder="Tell me about your project..." 
+                rows="4" 
+                value={message} 
+                onChange={(e) => setMessage(e.target.value)} 
+                disabled={status === "loading"} 
+                className="w-full bg-[#13151a] border border-white/5 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 outline-none rounded-2xl px-5 py-4 text-sm text-white transition-all placeholder:text-zinc-600 resize-none shadow-inner"
+                required
+              ></textarea>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                <button 
+                  type="submit" 
+                  disabled={status === "loading"} 
+                  className="w-full py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_0_30px_-5px_rgba(79,70,229,0.4)] hover:shadow-[0_0_40px_rgba(79,70,229,0.6)] hover:-translate-y-1 disabled:opacity-50 disabled:hover:transform-none"
+                >
+                  <FiSend size={16} />
+                  {status === "loading" ? "Sending..." : "Send Message"}
+                </button>
+                
+                <a 
+                  href={whatsappUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-full py-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 flex items-center justify-center gap-2 font-semibold text-sm transition-all duration-300 hover:-translate-y-1"
+                >
+                  <FaWhatsapp size={18} /> Chat on WhatsApp
+                </a>
+              </div>
+            </div>
+          </form>
+        </motion.div>
 
       </div>
     </section>
