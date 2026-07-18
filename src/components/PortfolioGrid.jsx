@@ -12,14 +12,20 @@ export default function PortfolioGrid() {
   const [categories, setCategories] = useState(["All"]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [glowColor, setGlowColor] = useState("#4f46e5"); 
+  const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
+    setIsMobile(window.innerWidth < 1024);
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+
     const q = query(collection(db, "projects"));
     const unsubscribeProjects = onSnapshot(q, (snapshot) => {
       let projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       projs.sort((a, b) => (a.order || 0) - (b.order || 0));
       setProjects(projs);
     });
+    
     const unsubscribeSettings = onSnapshot(doc(db, "portfolio", "settings"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -27,7 +33,8 @@ export default function PortfolioGrid() {
         if(data.glowColor1) setGlowColor(data.glowColor1);
       }
     });
-    return () => { unsubscribeProjects(); unsubscribeSettings(); };
+    
+    return () => { unsubscribeProjects(); unsubscribeSettings(); window.removeEventListener('resize', handleResize); };
   }, []);
 
   const filteredProjects = activeFilter === "All" ? projects : projects.filter(p => p.category === activeFilter);
@@ -41,8 +48,8 @@ export default function PortfolioGrid() {
   };
 
   return (
-    <section id="projects" className="py-20 md:py-24 px-5 md:px-6 max-w-7xl mx-auto relative z-10 overflow-hidden">
-      <div className="text-center mb-10 md:mb-16">
+    <section id="projects" className="py-16 md:py-24 px-4 md:px-6 max-w-7xl mx-auto relative z-10 overflow-hidden">
+      <div className="text-center mb-8 md:mb-16">
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
           Selected Work
         </motion.h2>
@@ -51,7 +58,7 @@ export default function PortfolioGrid() {
         </motion.p>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-10 md:mb-14">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex overflow-x-auto md:flex-wrap md:justify-center gap-2 md:gap-3 mb-8 md:mb-14 pb-4 md:pb-0 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {categories.map((category) => (
           <button
             key={category}
@@ -61,18 +68,19 @@ export default function PortfolioGrid() {
               boxShadow: activeFilter === category ? `0 0 20px ${glowColor}60` : 'none',
               color: activeFilter === category ? '#fff' : '#a1a1aa'
             }}
-            className="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide transition-all duration-300 border border-white/10 hover:bg-white/10"
+            className="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-[11px] sm:text-xs md:text-sm font-semibold tracking-wide transition-all duration-300 border border-white/10 hover:bg-white/10 whitespace-nowrap flex-shrink-0"
           >
             {category}
           </button>
         ))}
       </motion.div>
 
-      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8" style={{ perspective: "1200px" }}>
+      {/* ⚡ تعديل الـ grid-cols هنا: grid-cols-2 للموبايل و grid-cols-3 للكمبيوتر، وتصغير الجاب gap-3 */}
+      <motion.div layout className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8" style={{ perspective: isMobile ? "none" : "1200px" }}>
         <AnimatePresence mode="popLayout">
           {filteredProjects.map((project) => (
             <motion.div layout key={project.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.4 }}>
-              <ProjectCard project={project} onClick={() => setSelectedVideo(project)} glowColor={glowColor} />
+              <ProjectCard project={project} onClick={() => setSelectedVideo(project)} glowColor={glowColor} isMobile={isMobile} />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -81,10 +89,10 @@ export default function PortfolioGrid() {
       <AnimatePresence>
         {selectedVideo && (
           <motion.div initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(10px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-2 sm:p-4 md:p-10">
-            <button onClick={() => setSelectedVideo(null)} className="absolute top-6 right-4 md:top-12 md:right-12 text-white hover:text-red-400 transition-all p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 backdrop-blur-md shadow-2xl z-[1000]">
-              <FiX className="text-lg md:text-2xl" />
+            <button onClick={() => setSelectedVideo(null)} className="absolute top-4 right-4 md:top-12 md:right-12 text-white hover:text-red-400 transition-all p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 backdrop-blur-md shadow-2xl z-[1000]">
+              <FiX className="text-xl md:text-2xl" />
             </button>
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="relative w-full max-w-6xl aspect-video rounded-xl md:rounded-3xl overflow-hidden border border-white/10 bg-black shadow-2xl">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="relative w-full max-w-6xl aspect-video rounded-xl md:rounded-3xl overflow-hidden border border-white/10 bg-black shadow-2xl mt-8 md:mt-0">
               {selectedVideo.videoUrl ? (
                 <iframe src={getEmbedUrl(selectedVideo.videoUrl)} className="absolute top-0 left-0 w-full h-full" frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
               ) : (

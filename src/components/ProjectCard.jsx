@@ -40,20 +40,21 @@ export default function ProjectCard({ project, onClick, glowColor }) {
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 md:group-hover:scale-110"
       />
       
-      {/* التدرج اللوني يظهر دايماً على الموبايل عشان الكلام يبان */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#060814] via-[#060814]/60 md:via-[#060814]/40 to-transparent opacity-100 md:opacity-80 md:group-hover:opacity-90 transition-opacity duration-500" style={{ transform: isMobile ? "none" : "translateZ(30px)" }} />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060814] via-[#060814]/70 md:via-[#060814]/40 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-90 transition-opacity duration-500" style={{ transform: isMobile ? "none" : "translateZ(30px)" }} />
 
       <div className="absolute inset-0 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500" style={{ transform: isMobile ? "none" : "translateZ(60px)" }}>
-        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full backdrop-blur-md flex items-center justify-center text-white pl-1" style={{ backgroundColor: `${glowColor}B3`, boxShadow: `0 0 30px ${glowColor}80` }}>
-          <FaPlay className="text-sm md:text-xl" />
+        {/* ⚡ تصغير زرار الـ Play لـ الموبايل (w-8 h-8) */}
+        <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-full backdrop-blur-md flex items-center justify-center text-white pl-0.5 sm:pl-1 shadow-2xl" style={{ backgroundColor: `${glowColor}B3`, boxShadow: `0 0 30px ${glowColor}80` }}>
+          <FaPlay className="text-[10px] sm:text-sm md:text-xl" />
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500" style={{ transform: isMobile ? "none" : "translateZ(50px)" }}>
-        <p style={{ color: glowColor }} className="text-[10px] md:text-xs font-bold uppercase tracking-widest mb-1 md:mb-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500">
+      {/* ⚡ تصغير الـ Padding والخطوط لـ الموبايل عشان تناسب العمودين */}
+      <div className="absolute bottom-0 left-0 w-full p-2.5 sm:p-4 md:p-6 transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500" style={{ transform: isMobile ? "none" : "translateZ(50px)" }}>
+        <p style={{ color: glowColor }} className="text-[8px] sm:text-[10px] md:text-xs font-bold uppercase tracking-widest mb-0.5 sm:mb-1 md:mb-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500">
           {project.category}
         </p>
-        <h3 className="text-white font-bold text-base md:text-2xl truncate drop-shadow-md">
+        <h3 className="text-white font-bold text-xs sm:text-base md:text-2xl truncate drop-shadow-md">
           {project.title}
         </h3>
       </div>

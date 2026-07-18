@@ -15,7 +15,7 @@ export default function ContactForm() {
   const [whatsappNumber, setWhatsappNumber] = useState("201157266796");
   const [cvFile, setCvFile] = useState(""); 
   const [glowColor, setGlowColor] = useState("#4f46e5");
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 1024);
@@ -62,11 +62,11 @@ export default function ContactForm() {
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], isMobile ? [0,0] : ["-5deg", "5deg"]);
 
   return (
-    <section id="contact" className="py-20 md:py-24 px-5 md:px-6 max-w-6xl mx-auto relative z-10 overflow-hidden" style={{ perspective: isMobile ? "none" : "1500px" }}>
+    <section id="contact" className="py-16 md:py-24 px-5 md:px-6 max-w-6xl mx-auto relative z-10 overflow-hidden" style={{ perspective: isMobile ? "none" : "1500px" }}>
       
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] blur-[100px] md:blur-[150px] rounded-full pointer-events-none -z-10 opacity-30" style={{ backgroundColor: glowColor }} />
 
-      <div className="text-center mb-12 md:mb-16">
+      <div className="text-center mb-10 md:mb-16">
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">Let's Create Something Together</motion.h2>
         <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-zinc-500 text-[10px] md:text-sm font-medium uppercase tracking-[0.2em]">Get in touch</motion.p>
       </div>
@@ -113,24 +113,34 @@ export default function ContactForm() {
           }}
           onMouseLeave={() => { x.set(0); y.set(0); }}
           initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
-          className="lg:col-span-2 w-full px-2 sm:px-0"
+          className="lg:col-span-2 w-full"
         >
           <form onSubmit={handleSendEmail} className="bg-[#090a0f] border border-white/5 p-6 sm:p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 blur-[60px] md:blur-[80px] rounded-full pointer-events-none opacity-30 md:opacity-40 transition-colors" style={{ backgroundColor: glowColor }} />
+
+            {/* رسائل التنبيه */}
+            <AnimatePresence>
+              {status === "success" && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs md:text-sm p-4 rounded-xl md:rounded-2xl flex items-center justify-center gap-2">
+                  Message Sent Successfully! We'll be in touch. ✨
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="space-y-4 md:space-y-5 relative z-10" style={{ transform: isMobile ? "none" : "translateZ(30px)" }}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none text-zinc-500"><FiUser size={16} /></div>
-                  <input type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl pl-10 md:pl-11 pr-4 md:pr-5 py-3.5 md:py-4 text-xs md:text-sm text-white transition-all shadow-inner" style={{ focus: { borderColor: glowColor } }} required />
+                  {/* ⚡ text-[16px] for iOS Zoom fix ⚡ */}
+                  <input type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl pl-10 md:pl-11 pr-4 md:pr-5 py-3.5 md:py-4 text-[16px] md:text-sm text-white transition-all shadow-inner" style={{ focus: { borderColor: glowColor } }} required />
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 md:pl-4 flex items-center pointer-events-none text-zinc-500"><FiMail size={16} /></div>
-                  <input type="email" placeholder="Your Email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl pl-10 md:pl-11 pr-4 md:pr-5 py-3.5 md:py-4 text-xs md:text-sm text-white transition-all shadow-inner" required />
+                  <input type="email" placeholder="Your Email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl pl-10 md:pl-11 pr-4 md:pr-5 py-3.5 md:py-4 text-[16px] md:text-sm text-white transition-all shadow-inner" required />
                 </div>
               </div>
               
-              <textarea placeholder="Tell me about your project..." rows="4" value={message} onChange={(e) => setMessage(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl px-4 md:px-5 py-3.5 md:py-4 text-xs md:text-sm text-white transition-all resize-none shadow-inner" required></textarea>
+              <textarea placeholder="Tell me about your project..." rows="4" value={message} onChange={(e) => setMessage(e.target.value)} disabled={status === "loading"} className="w-full bg-[#13151a] border border-white/5 focus:ring-1 outline-none rounded-xl md:rounded-2xl px-4 md:px-5 py-3.5 md:py-4 text-[16px] md:text-sm text-white transition-all resize-none shadow-inner" required></textarea>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 pt-2 md:pt-4">
                 <button type="submit" disabled={status === "loading"} style={{ backgroundColor: glowColor, boxShadow: `0 0 30px ${glowColor}40` }} className="w-full py-3.5 md:py-4 rounded-xl md:rounded-2xl text-white font-semibold text-xs md:text-sm transition-all flex items-center justify-center gap-2 hover:brightness-110 md:hover:-translate-y-1 disabled:opacity-50">

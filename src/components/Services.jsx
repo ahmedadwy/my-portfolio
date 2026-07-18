@@ -10,12 +10,14 @@ function ServiceCard({ service, glowColor, isMobile }) {
   const y = useMotionValue(0);
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
   const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
+  
+  // إغلاق الدوران في الموبايل
   const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], isMobile ? [0, 0] : ["10deg", "-10deg"]);
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], isMobile ? [0, 0] : ["-10deg", "10deg"]);
 
   const renderIcon = (iconName) => {
     const IconComponent = FiIcons[iconName] || FiIcons.FiFilm;
-    return <IconComponent className="text-2xl md:text-3xl" />;
+    return <IconComponent className="text-[22px] md:text-3xl" />;
   };
 
   return (
@@ -33,9 +35,10 @@ function ServiceCard({ service, glowColor, isMobile }) {
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 md:group-hover:opacity-100 transition-opacity duration-500" />
       
-      <div style={{ transform: isMobile ? "none" : "translateZ(40px)" }} className="relative z-10 w-12 h-12 md:w-16 md:h-16 bg-zinc-900/80 backdrop-blur-sm rounded-xl md:rounded-2xl flex items-center justify-center border border-white/10 mb-5 md:mb-6 text-zinc-400 group-hover:text-white transition-all duration-500">
-        <div className="absolute inset-0 rounded-xl md:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: glowColor, filter: 'blur(10px)' }} />
-        <div className="relative z-10 drop-shadow-md">{renderIcon(service.icon)}</div>
+      <div style={{ transform: isMobile ? "none" : "translateZ(40px)" }} className="relative z-10 w-12 h-12 md:w-16 md:h-16 bg-zinc-900/80 backdrop-blur-sm rounded-xl md:rounded-2xl flex items-center justify-center border border-white/10 mb-5 md:mb-6 text-zinc-400 group-hover:text-white transition-all duration-500 shadow-md">
+        {/* إضاءة الأيقونة في الخلفية */}
+        <div className="absolute inset-0 rounded-xl md:rounded-2xl opacity-20 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundColor: glowColor, filter: 'blur(10px)' }} />
+        <div className="relative z-10 drop-shadow-md" style={{ color: isMobile ? glowColor : undefined }}>{renderIcon(service.icon)}</div>
       </div>
       
       <h3 style={{ transform: isMobile ? "none" : "translateZ(30px)" }} className="relative z-10 text-lg md:text-xl font-bold text-white mb-2 md:mb-3 transition-colors duration-300">
@@ -51,7 +54,7 @@ function ServiceCard({ service, glowColor, isMobile }) {
 export default function Services() {
   const [services, setServices] = useState([]);
   const [glowColor, setGlowColor] = useState("#4f46e5");
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 1024);
@@ -71,8 +74,8 @@ export default function Services() {
   if (services.length === 0) return null;
 
   return (
-    <section id="services" className="py-20 md:py-24 px-5 md:px-6 max-w-7xl mx-auto relative z-10 overflow-hidden">
-      <div className="text-center mb-12 md:mb-16">
+    <section id="services" className="py-16 md:py-24 px-5 md:px-6 max-w-7xl mx-auto relative z-10 overflow-hidden">
+      <div className="text-center mb-10 md:mb-16">
         <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
           My Services
         </motion.h2>
@@ -84,7 +87,7 @@ export default function Services() {
       <motion.div 
         initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }}
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
         style={{ perspective: isMobile ? "none" : "1500px" }}
       >
         {services.map((service, index) => (
