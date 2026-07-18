@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../../lib/firebase';
 import { doc, getDoc, setDoc, collection, onSnapshot, addDoc, deleteDoc, query } from 'firebase/firestore';
-import { FiPlus, FiTrash2, FiMail, FiVideo, FiLogOut, FiUpload, FiFolder, FiUser, FiCpu, FiImage, FiHome, FiBriefcase, FiLink, FiShield, FiLock, FiUnlock, FiFileText, FiMenu, FiX, FiInstagram, FiLinkedin, FiEdit2, FiMove } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiMail, FiVideo, FiLogOut, FiUpload, FiFolder, FiUser, FiCpu, FiImage, FiHome, FiBriefcase, FiLink, FiShield, FiLock, FiUnlock, FiFileText, FiMenu, FiX, FiInstagram, FiLinkedin, FiEdit2, FiMove, FiDroplet, FiPieChart, FiEye } from 'react-icons/fi';
 import { FaVimeoV, FaBehance, FaWhatsapp } from 'react-icons/fa';
 
 export default function AdminDashboard() {
@@ -14,8 +14,11 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const [activeTab, setActiveTab] = useState("hero");
+  const [activeTab, setActiveTab] = useState("analytics"); 
   const [showIntro, setShowIntro] = useState(true);
+
+  // 📊 States الإحصائيات
+  const [stats, setStats] = useState({ views: 0, projectsCount: 0, messagesCount: 0, servicesCount: 0 });
 
   // 🛡️ States تغيير الباسورد
   const [oldPassword, setOldPassword] = useState("");
@@ -28,13 +31,17 @@ export default function AdminDashboard() {
   const [heroDesc, setHeroDesc] = useState("");
   const [heroVideoUrl, setHeroVideoUrl] = useState("");
   const [heroThumbnail, setHeroThumbnail] = useState("");
+  // 🎨 States الخلفية الجديدة
+  const [glowColor1, setGlowColor1] = useState("#4f46e5"); 
+  const [glowColor2, setGlowColor2] = useState("#2563eb"); 
+  const [bgImage, setBgImage] = useState("");
 
   // 💼 States الخدمات (Services)
   const [services, setServices] = useState([]);
   const [newServiceTitle, setNewServiceTitle] = useState("");
   const [newServiceDesc, setNewServiceDesc] = useState("");
   const [newServiceIcon, setNewServiceIcon] = useState("FiFilm");
-  const [editServiceId, setEditServiceId] = useState(null); // للتعديل
+  const [editServiceId, setEditServiceId] = useState(null); 
 
   // 🔗 States الروابط (Social)
   const [youtubeUrl, setYoutubeUrl] = useState("");
@@ -53,19 +60,19 @@ export default function AdminDashboard() {
   const [newToolName, setNewToolName] = useState("");
   const [newToolShort, setNewToolShort] = useState("");
   const [newToolColor, setNewToolColor] = useState("purple");
-  const [editToolIndex, setEditToolIndex] = useState(null); // للتعديل
+  const [editToolIndex, setEditToolIndex] = useState(null); 
 
   // 🎬 States المشاريع (Projects)
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(["Commercials", "Motion Graphics", "Social Media"]);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editCategoryIndex, setEditCategoryIndex] = useState(null); // للتعديل
+  const [editCategoryIndex, setEditCategoryIndex] = useState(null); 
   
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState("Commercials");
   const [newThumbnail, setNewThumbnail] = useState("");
   const [newVideoUrl, setNewVideoUrl] = useState("");
-  const [editProjectId, setEditProjectId] = useState(null); // للتعديل
+  const [editProjectId, setEditProjectId] = useState(null); 
 
   const [messages, setMessages] = useState([]);
 
@@ -74,9 +81,7 @@ export default function AdminDashboard() {
   const dragOverItem = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowIntro(false);
-    }, 2500); 
+    const timer = setTimeout(() => setShowIntro(false), 2500); 
     return () => clearTimeout(timer);
   }, []);
 
@@ -84,37 +89,31 @@ export default function AdminDashboard() {
     if (localStorage.getItem("adwy_admin_auth") === "true") setIsAuthenticated(true);
     setIsCheckingAuth(false);
 
-    const fetchSettings = async () => {
-      const docRef = doc(db, "portfolio", "settings");
-      const docSnap = await getDoc(docRef);
+    // 1. جلب الزيارات
+    const fetchStats = onSnapshot(doc(db, "portfolio", "stats"), (docSnap) => {
+      if (docSnap.exists()) setStats(prev => ({ ...prev, views: docSnap.data().pageViews || 0 }));
+    });
+
+    // 2. جلب الإعدادات
+    const fetchSettings = onSnapshot(doc(db, "portfolio", "settings"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setHeroTitle(data.heroTitle || "");
-        setHeroDesc(data.heroDesc || "");
-        setHeroVideoUrl(data.heroVideoUrl || "");
-        setHeroThumbnail(data.heroThumbnail || "");
-        setServices(data.services || []);
-        setYoutubeUrl(data.youtubeUrl || "");
-        setInstagramUrl(data.instagramUrl || "");
-        setLinkedinUrl(data.linkedinUrl || "");
-        setVimeoUrl(data.vimeoUrl || "");
-        setBehanceUrl(data.behanceUrl || "");
-        setWhatsappNum(data.whatsappNum || "");
-        setCvFile(data.cvFile || "");
-        setAboutTitle(data.aboutTitle || "");
-        setAboutDesc(data.aboutDesc || "");
-        setAboutImage(data.aboutImage || "");
-        setTools(data.tools || []);
+        setHeroTitle(data.heroTitle || ""); setHeroDesc(data.heroDesc || ""); setHeroVideoUrl(data.heroVideoUrl || ""); setHeroThumbnail(data.heroThumbnail || "");
+        setGlowColor1(data.glowColor1 || "#4f46e5"); setGlowColor2(data.glowColor2 || "#2563eb"); setBgImage(data.bgImage || "");
+        setServices(data.services || []); setYoutubeUrl(data.youtubeUrl || ""); setInstagramUrl(data.instagramUrl || ""); setLinkedinUrl(data.linkedinUrl || "");
+        setVimeoUrl(data.vimeoUrl || ""); setBehanceUrl(data.behanceUrl || ""); setWhatsappNum(data.whatsappNum || ""); setCvFile(data.cvFile || "");
+        setAboutTitle(data.aboutTitle || ""); setAboutDesc(data.aboutDesc || ""); setAboutImage(data.aboutImage || ""); setTools(data.tools || []);
         setCategories(data.categories || ["Commercials", "Motion Graphics", "Social Media"]);
+        setStats(prev => ({ ...prev, servicesCount: (data.services || []).length }));
       }
-    };
-    fetchSettings();
+    });
 
     const qProjects = query(collection(db, "projects"));
     const unsubscribeProjects = onSnapshot(qProjects, (snapshot) => {
       let projs = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
       projs.sort((a, b) => (a.order || 0) - (b.order || 0));
       setProjects(projs);
+      setStats(prev => ({ ...prev, projectsCount: projs.length }));
     });
 
     const qMessages = query(collection(db, "messages"));
@@ -122,18 +121,15 @@ export default function AdminDashboard() {
       let msgs = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
       msgs.sort((a, b) => b.id - a.id);
       setMessages(msgs);
+      setStats(prev => ({ ...prev, messagesCount: msgs.length }));
     });
 
-    return () => { unsubscribeProjects(); unsubscribeMessages(); };
+    return () => { fetchStats(); fetchSettings(); unsubscribeProjects(); unsubscribeMessages(); };
   }, []);
 
   const updateFirebaseSettings = async (updatedFields) => {
-    try {
-      const docRef = doc(db, "portfolio", "settings");
-      await setDoc(docRef, updatedFields, { merge: true });
-    } catch (err) {
-      console.error("Error updating settings:", err);
-    }
+    try { await setDoc(doc(db, "portfolio", "settings"), updatedFields, { merge: true }); } 
+    catch (err) { console.error("Error updating settings:", err); }
   };
 
   const handleLogin = (e) => {
@@ -159,7 +155,7 @@ export default function AdminDashboard() {
 
   const handleSaveHero = async (e) => {
     e.preventDefault();
-    await updateFirebaseSettings({ heroTitle, heroDesc, heroVideoUrl });
+    await updateFirebaseSettings({ heroTitle, heroDesc, heroVideoUrl, glowColor1, glowColor2 });
     alert("Hero updated securely in the cloud! ✓");
   };
 
@@ -171,6 +167,21 @@ export default function AdminDashboard() {
       await updateFirebaseSettings({ heroThumbnail: reader.result });
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleBgImageUpload = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      setBgImage(reader.result);
+      await updateFirebaseSettings({ bgImage: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveBgImage = async () => {
+    setBgImage("");
+    await updateFirebaseSettings({ bgImage: "" });
   };
 
   // ===================== CRUD FOR SERVICES =====================
@@ -188,130 +199,47 @@ export default function AdminDashboard() {
     setNewServiceTitle(""); setNewServiceDesc("");
   };
 
-  const handleEditService = (s) => {
-    setNewServiceTitle(s.title); setNewServiceDesc(s.desc); setNewServiceIcon(s.icon); setEditServiceId(s.id);
-  };
+  const handleEditService = (s) => { setNewServiceTitle(s.title); setNewServiceDesc(s.desc); setNewServiceIcon(s.icon); setEditServiceId(s.id); };
+  const handleDeleteService = async (id) => { const updated = services.filter(s => s.id !== id); setServices(updated); await updateFirebaseSettings({ services: updated }); };
+  const handleSortServices = async () => { let _list = [...services]; const draggedItem = _list.splice(dragItem.current, 1)[0]; _list.splice(dragOverItem.current, 0, draggedItem); dragItem.current = null; dragOverItem.current = null; setServices(_list); await updateFirebaseSettings({ services: _list }); };
 
-  const handleDeleteService = async (id) => {
-    const updated = services.filter(s => s.id !== id);
-    setServices(updated);
-    await updateFirebaseSettings({ services: updated });
-  };
-
-  const handleSortServices = async () => {
-    let _list = [...services];
-    const draggedItem = _list.splice(dragItem.current, 1)[0];
-    _list.splice(dragOverItem.current, 0, draggedItem);
-    dragItem.current = null; dragOverItem.current = null;
-    setServices(_list);
-    await updateFirebaseSettings({ services: _list });
-  };
-
-  // ===================== CRUD FOR TOOLS / SKILLS =====================
+  // ===================== CRUD FOR TOOLS =====================
   const handleAddTool = async (e) => {
     e.preventDefault(); if (!newToolName || !newToolShort) return;
     let cls = `border-${newToolColor}-800 text-${newToolColor}-400 bg-${newToolColor}-950/20`;
     let updated;
-    if (editToolIndex !== null) {
-      updated = [...tools];
-      updated[editToolIndex] = { name: newToolName, short: newToolShort, color: cls, colorName: newToolColor };
-      setEditToolIndex(null);
-    } else {
-      updated = [...tools, { name: newToolName, short: newToolShort, color: cls, colorName: newToolColor }];
-    }
-    setTools(updated);
-    await updateFirebaseSettings({ tools: updated });
-    setNewToolName(""); setNewToolShort("");
+    if (editToolIndex !== null) { updated = [...tools]; updated[editToolIndex] = { name: newToolName, short: newToolShort, color: cls, colorName: newToolColor }; setEditToolIndex(null); } 
+    else { updated = [...tools, { name: newToolName, short: newToolShort, color: cls, colorName: newToolColor }]; }
+    setTools(updated); await updateFirebaseSettings({ tools: updated }); setNewToolName(""); setNewToolShort("");
   };
 
-  const handleEditTool = (t, index) => {
-    setNewToolName(t.name); setNewToolShort(t.short); setNewToolColor(t.colorName || "purple"); setEditToolIndex(index);
-  };
-
-  const handleDeleteTool = async (index) => {
-    const updated = tools.filter((_, i) => i !== index);
-    setTools(updated);
-    await updateFirebaseSettings({ tools: updated });
-  };
-
-  const handleSortTools = async () => {
-    let _list = [...tools];
-    const draggedItem = _list.splice(dragItem.current, 1)[0];
-    _list.splice(dragOverItem.current, 0, draggedItem);
-    dragItem.current = null; dragOverItem.current = null;
-    setTools(_list);
-    await updateFirebaseSettings({ tools: _list });
-  };
+  const handleEditTool = (t, index) => { setNewToolName(t.name); setNewToolShort(t.short); setNewToolColor(t.colorName || "purple"); setEditToolIndex(index); };
+  const handleDeleteTool = async (index) => { const updated = tools.filter((_, i) => i !== index); setTools(updated); await updateFirebaseSettings({ tools: updated }); };
+  const handleSortTools = async () => { let _list = [...tools]; const draggedItem = _list.splice(dragItem.current, 1)[0]; _list.splice(dragOverItem.current, 0, draggedItem); dragItem.current = null; dragOverItem.current = null; setTools(_list); await updateFirebaseSettings({ tools: _list }); };
 
   // ===================== CRUD FOR CATEGORIES =====================
   const handleAddCategory = async (e) => {
     e.preventDefault(); if (!newCategoryName.trim()) return;
     let updated;
-    if (editCategoryIndex !== null) {
-      updated = [...categories];
-      updated[editCategoryIndex] = newCategoryName.trim();
-      setEditCategoryIndex(null);
-    } else {
-      updated = [...categories, newCategoryName.trim()];
-    }
-    setCategories(updated);
-    await updateFirebaseSettings({ categories: updated });
-    setNewCategoryName("");
+    if (editCategoryIndex !== null) { updated = [...categories]; updated[editCategoryIndex] = newCategoryName.trim(); setEditCategoryIndex(null); } 
+    else { updated = [...categories, newCategoryName.trim()]; }
+    setCategories(updated); await updateFirebaseSettings({ categories: updated }); setNewCategoryName("");
   };
-  
   const handleEditCategory = (cat, index) => { setNewCategoryName(cat); setEditCategoryIndex(index); };
-  
-  const handleDeleteCategory = async (index) => {
-    const updated = categories.filter((_, i) => i !== index);
-    setCategories(updated);
-    await updateFirebaseSettings({ categories: updated });
-  };
-
-  const handleSortCategories = async () => {
-    let _list = [...categories];
-    const draggedItem = _list.splice(dragItem.current, 1)[0];
-    _list.splice(dragOverItem.current, 0, draggedItem);
-    dragItem.current = null; dragOverItem.current = null;
-    setCategories(_list);
-    await updateFirebaseSettings({ categories: _list });
-  };
+  const handleDeleteCategory = async (index) => { const updated = categories.filter((_, i) => i !== index); setCategories(updated); await updateFirebaseSettings({ categories: updated }); };
+  const handleSortCategories = async () => { let _list = [...categories]; const draggedItem = _list.splice(dragItem.current, 1)[0]; _list.splice(dragOverItem.current, 0, draggedItem); dragItem.current = null; dragOverItem.current = null; setCategories(_list); await updateFirebaseSettings({ categories: _list }); };
 
   // ===================== CRUD FOR PROJECTS =====================
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader(); reader.onloadend = () => setNewThumbnail(reader.result); reader.readAsDataURL(file);
-  };
-
+  const handleImageUpload = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onloadend = () => setNewThumbnail(reader.result); reader.readAsDataURL(file); };
   const handleAddProject = async (e) => {
     e.preventDefault(); if (!newTitle || !newThumbnail) return alert("Fill fields!");
-    
-    if (editProjectId) {
-      await setDoc(doc(db, "projects", editProjectId), { title: newTitle, category: newCategory, thumbnail: newThumbnail, videoUrl: newVideoUrl || "#" }, { merge: true });
-      setEditProjectId(null);
-    } else {
-      const newProj = { id: Date.now(), order: projects.length, title: newTitle, category: newCategory, thumbnail: newThumbnail, videoUrl: newVideoUrl || "#" };
-      await addDoc(collection(db, "projects"), newProj);
-    }
+    if (editProjectId) { await setDoc(doc(db, "projects", editProjectId), { title: newTitle, category: newCategory, thumbnail: newThumbnail, videoUrl: newVideoUrl || "#" }, { merge: true }); setEditProjectId(null); } 
+    else { const newProj = { id: Date.now(), order: projects.length, title: newTitle, category: newCategory, thumbnail: newThumbnail, videoUrl: newVideoUrl || "#" }; await addDoc(collection(db, "projects"), newProj); }
     setNewTitle(""); setNewThumbnail(""); setNewVideoUrl("");
   };
-
-  const handleEditProject = (p) => {
-    setNewTitle(p.title); setNewCategory(p.category); setNewVideoUrl(p.videoUrl); setNewThumbnail(p.thumbnail); setEditProjectId(p.docId);
-  };
-
+  const handleEditProject = (p) => { setNewTitle(p.title); setNewCategory(p.category); setNewVideoUrl(p.videoUrl); setNewThumbnail(p.thumbnail); setEditProjectId(p.docId); };
   const handleDeleteProject = async (docId) => { await deleteDoc(doc(db, "projects", docId)); };
-
-  const handleSortProjects = async () => {
-    let _list = [...projects];
-    const draggedItem = _list.splice(dragItem.current, 1)[0];
-    _list.splice(dragOverItem.current, 0, draggedItem);
-    dragItem.current = null; dragOverItem.current = null;
-    setProjects(_list);
-    
-    _list.forEach(async (proj, index) => {
-      await setDoc(doc(db, "projects", proj.docId), { order: index }, { merge: true });
-    });
-  };
+  const handleSortProjects = async () => { let _list = [...projects]; const draggedItem = _list.splice(dragItem.current, 1)[0]; _list.splice(dragOverItem.current, 0, draggedItem); dragItem.current = null; dragOverItem.current = null; setProjects(_list); _list.forEach(async (proj, index) => { await setDoc(doc(db, "projects", proj.docId), { order: index }, { merge: true }); }); };
 
   // ===================== OTHERS =====================
   const handleSaveAboutText = async (e) => { e.preventDefault(); await updateFirebaseSettings({ aboutTitle, aboutDesc }); alert("About info saved to Cloud! ✓"); };
@@ -351,6 +279,8 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <div className="hidden md:block text-xl font-bold tracking-wider"><span>ADWY</span><span className="text-indigo-500">.Admin</span></div>
             <nav className="space-y-2">
+              <button onClick={() => { setActiveTab("analytics"); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${activeTab === "analytics" ? "bg-indigo-600 text-white" : "text-zinc-400 hover:bg-zinc-800/50 hover:text-white"}`}><FiPieChart /> Overview Stats</button>
+              
               {[
                 { id: "hero", icon: <FiHome />, label: "Manage Hero" },
                 { id: "services", icon: <FiBriefcase />, label: "Manage Services" },
@@ -377,29 +307,102 @@ export default function AdminDashboard() {
         </aside>
 
         <main className="flex-1 p-4 md:p-10 overflow-x-hidden">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             
+            {/* 📊 قسم الإحصائيات الجديد */}
+            {activeTab === "analytics" && (
+              <div className="space-y-8 animate-fadeIn">
+                <h2 className="text-2xl font-bold flex items-center gap-2 mb-6"><FiPieChart className="text-indigo-500" /> Dashboard Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-indigo-900/20 border border-indigo-500/30 p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-[0_0_30px_rgba(79,70,229,0.15)]">
+                    <FiEye className="text-3xl text-indigo-400 mb-3" />
+                    <h3 className="text-4xl font-black text-white">{stats.views}</h3>
+                    <p className="text-zinc-400 text-xs uppercase tracking-wider mt-1">Total Page Views</p>
+                  </div>
+                  <div className="bg-[#111319] border border-zinc-800 p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <FiVideo className="text-3xl text-emerald-400 mb-3" />
+                    <h3 className="text-4xl font-black text-white">{stats.projectsCount}</h3>
+                    <p className="text-zinc-400 text-xs uppercase tracking-wider mt-1">Live Projects</p>
+                  </div>
+                  <div className="bg-[#111319] border border-zinc-800 p-6 rounded-2xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <FiMail className="text-3xl text-pink-400 mb-3" />
+                    <h3 className="text-4xl font-black text-white">{stats.messagesCount}</h3>
+                    <p className="text-zinc-400 text-xs uppercase tracking-wider mt-1">Total Messages</p>
+                    {stats.messagesCount > 0 && <span className="absolute top-4 right-4 w-3 h-3 bg-pink-500 rounded-full animate-pulse" />}
+                  </div>
+                  <div className="bg-[#111319] border border-zinc-800 p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <FiBriefcase className="text-3xl text-blue-400 mb-3" />
+                    <h3 className="text-4xl font-black text-white">{stats.servicesCount}</h3>
+                    <p className="text-zinc-400 text-xs uppercase tracking-wider mt-1">Services Offered</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === "hero" && (
-              <div className="space-y-10">
-                <div className="bg-[#111319] border border-zinc-800 rounded-2xl p-6 grid grid-cols-1 lg:grid-cols-3 gap-8 w-full animate-fadeIn">
-                  <form onSubmit={handleSaveHero} className="lg:col-span-2 space-y-4">
-                    <h2 className="text-lg font-bold flex items-center gap-2"><FiHome className="text-indigo-500" /> Edit Hero Section</h2>
+              <div className="space-y-8 animate-fadeIn">
+                <form onSubmit={handleSaveHero} className="bg-[#111319] border border-zinc-800 rounded-2xl p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+                  
+                  {/* قسم النصوص الأساسية */}
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-bold flex items-center gap-2"><FiHome className="text-indigo-500" /> Hero Content</h2>
                     <div><label className="block text-xs text-zinc-500 mb-1">Hero Title</label><input type="text" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" /></div>
                     <div><label className="block text-xs text-zinc-500 mb-1">Hero Description</label><textarea rows="3" value={heroDesc} onChange={(e) => setHeroDesc(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm resize-none text-white outline-none focus:border-indigo-500" /></div>
                     <div><label className="block text-xs text-zinc-500 mb-1">Vimeo Showreel URL</label><input type="url" value={heroVideoUrl} onChange={(e) => setHeroVideoUrl(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" /></div>
-                    <button type="submit" className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Save Hero Changes</button>
-                  </form>
-                  
-                  <div className="space-y-4 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-zinc-800/60 pt-6 lg:pt-0 lg:pl-8">
-                    <h2 className="text-lg font-bold flex items-center gap-2"><FiImage className="text-indigo-500" /> Showreel Thumbnail</h2>
-                    <div className="w-full aspect-video rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 p-1 flex items-center justify-center">
-                      {heroThumbnail ? <img src={heroThumbnail} className="w-full h-full object-cover rounded-lg" alt="Showreel Thumbnail" /> : <span className="text-xs text-zinc-600">No Image</span>}
-                    </div>
-                    <label className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-3 text-xs font-medium flex items-center justify-center gap-2 text-zinc-400 cursor-pointer hover:bg-zinc-800/50 transition-colors">
-                      <FiUpload /> Upload Thumbnail <input type="file" accept="image/*" onChange={handleHeroThumbUpload} className="hidden" />
-                    </label>
                   </div>
-                </div>
+                  
+                  {/* 🎨 قسم إعدادات الخلفية والإضاءة */}
+                  <div className="space-y-4 border-t lg:border-t-0 lg:border-l border-zinc-800/60 pt-6 lg:pt-0 lg:pl-8">
+                    <h2 className="text-lg font-bold flex items-center gap-2"><FiDroplet className="text-pink-500" /> Background & Atmosphere</h2>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-zinc-500 mb-1">Left Glow Color</label>
+                        <div className="flex items-center gap-3 bg-[#171923] border border-zinc-800 rounded-xl px-3 py-2">
+                          <input type="color" value={glowColor1} onChange={(e) => setGlowColor1(e.target.value)} className="w-8 h-8 rounded bg-transparent border-none cursor-pointer" />
+                          <span className="text-xs text-zinc-400 uppercase">{glowColor1}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-zinc-500 mb-1">Right Glow Color</label>
+                        <div className="flex items-center gap-3 bg-[#171923] border border-zinc-800 rounded-xl px-3 py-2">
+                          <input type="color" value={glowColor2} onChange={(e) => setGlowColor2(e.target.value)} className="w-8 h-8 rounded bg-transparent border-none cursor-pointer" />
+                          <span className="text-xs text-zinc-400 uppercase">{glowColor2}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <label className="block text-xs text-zinc-500 mb-2">Parallax Background Image</label>
+                      {bgImage ? (
+                        <div className="relative w-full h-24 rounded-xl overflow-hidden border border-zinc-700 group">
+                          <img src={bgImage} className="w-full h-full object-cover opacity-50" alt="Background" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="button" onClick={handleRemoveBgImage} className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm bg-red-950/50 px-3 py-1.5 rounded-lg"><FiTrash2 /> Remove</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-3 text-xs font-medium flex items-center justify-center gap-2 text-zinc-400 cursor-pointer hover:bg-zinc-800/50 transition-colors">
+                          <FiUpload /> Upload Background Image <input type="file" accept="image/*" onChange={handleBgImageUpload} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 lg:col-span-2 pt-4 border-t border-zinc-800/60 flex flex-col sm:flex-row justify-between items-center gap-4">
+                     <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className="w-16 h-12 bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
+                          {heroThumbnail ? <img src={heroThumbnail} className="w-full h-full object-cover" alt="Thumb" /> : <span className="text-[10px] text-zinc-600 flex h-full items-center justify-center">No Cover</span>}
+                        </div>
+                        <label className="text-xs font-medium text-indigo-400 hover:text-indigo-300 cursor-pointer whitespace-nowrap">
+                          Change Video Cover <input type="file" accept="image/*" onChange={handleHeroThumbUpload} className="hidden" />
+                        </label>
+                     </div>
+                     <button type="submit" className="bg-indigo-600 text-white px-8 py-3 rounded-xl text-sm font-bold w-full sm:w-auto hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-900/20">
+                       Save All Changes
+                     </button>
+                  </div>
+                </form>
               </div>
             )}
 
@@ -409,8 +412,6 @@ export default function AdminDashboard() {
                   <h2 className="text-lg font-bold flex items-center gap-2"><FiBriefcase className="text-indigo-500" /> {editServiceId ? "Edit Service" : "Add New Service"}</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" placeholder="Title" value={newServiceTitle} onChange={(e) => setNewServiceTitle(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500 text-white" />
-                    
-                    {/* ⚡ تم إضافة قائمة كبيرة جداً من الأيقونات المناسبة للمونتاج والموشن جرافيك */}
                     <select value={newServiceIcon} onChange={(e) => setNewServiceIcon(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-300 outline-none focus:border-indigo-500">
                       <optgroup label="Video & Animation">
                         <option value="FiFilm">Film / Movie (FiFilm)</option> 
@@ -443,7 +444,6 @@ export default function AdminDashboard() {
                         <option value="FiAward">Award / Achievement (FiAward)</option>
                       </optgroup>
                     </select>
-
                   </div>
                   <textarea rows="3" placeholder="Description..." value={newServiceDesc} onChange={(e) => setNewServiceDesc(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm resize-none outline-none focus:border-indigo-500 text-white" />
                   <div className="flex gap-2">
@@ -501,24 +501,20 @@ export default function AdminDashboard() {
 
                 <form onSubmit={handleAddProject} className="bg-[#111319] border border-zinc-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-end relative border-t-4 border-t-indigo-500">
                   <h2 className="absolute -top-10 left-0 text-lg font-bold flex items-center gap-2"><FiVideo /> {editProjectId ? "Edit Project" : "Add New Project"}</h2>
-                  
                   <div className="space-y-1 w-full">
                     <label className="text-xs text-zinc-500">Project Title</label>
                     <input type="text" placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" />
                   </div>
-                  
                   <div className="space-y-1 w-full">
                     <label className="text-xs text-zinc-500">Category</label>
                     <select value={newCategory} onChange={(e) => setNewCategory(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-300 outline-none focus:border-indigo-500">
                       {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                   </div>
-
                   <div className="space-y-1 w-full">
                     <label className="text-xs text-zinc-500">Vimeo/Video URL</label>
                     <input type="url" placeholder="Video URL" value={newVideoUrl} onChange={(e) => setNewVideoUrl(e.target.value)} className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" />
                   </div>
-
                   <div className="space-y-1 w-full">
                     <label className="text-xs text-zinc-500">Cover Image</label>
                     <label className="bg-[#171923] border border-zinc-800 rounded-xl px-4 py-2.5 text-sm flex items-center justify-between text-zinc-400 cursor-pointer w-full hover:bg-zinc-800/50 transition-colors">
@@ -526,7 +522,6 @@ export default function AdminDashboard() {
                       <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     </label>
                   </div>
-
                   <div className="flex gap-2 w-full col-span-1 md:col-span-2 xl:col-span-1">
                      <button type="submit" className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1">{editProjectId ? <FiEdit2 /> : <FiPlus />} {editProjectId ? "Update" : "Add"}</button>
                      {editProjectId && <button type="button" onClick={() => {setEditProjectId(null); setNewTitle(""); setNewThumbnail(""); setNewVideoUrl("");}} className="w-1/3 bg-zinc-800 text-zinc-300 py-2.5 rounded-xl text-sm hover:bg-zinc-700">Cancel</button>}
@@ -574,7 +569,7 @@ export default function AdminDashboard() {
                     </label>
                   </div>
                 </div>
-
+                {/* Tools Section */}
                 <div className="bg-[#111319] border border-zinc-800 rounded-2xl p-6 space-y-6">
                   <h2 className="text-lg font-bold flex items-center gap-2"><FiCpu className="text-purple-500" /> {editToolIndex !== null ? "Edit Tool / Skill" : "Add Tool / Skill"}</h2>
                   <form onSubmit={handleAddTool} className="flex flex-col sm:flex-row gap-4">
@@ -588,9 +583,8 @@ export default function AdminDashboard() {
                         {editToolIndex !== null && <button type="button" onClick={() => {setEditToolIndex(null); setNewToolName(""); setNewToolShort("");}} className="px-4 bg-zinc-800 text-zinc-300 rounded-xl text-sm hover:bg-zinc-700">Cancel</button>}
                     </div>
                   </form>
-
                   <div className="flex flex-col gap-3 pt-4 border-t border-zinc-800/60">
-                    {tools.length === 0 ? <p className="text-sm text-zinc-500">No tools added yet.</p> : tools.map((tool, index) => (
+                    {tools.map((tool, index) => (
                       <div key={index} draggable onDragStart={() => dragItem.current = index} onDragEnter={() => dragOverItem.current = index} onDragEnd={handleSortTools} className={`px-4 py-3 rounded-xl border flex items-center justify-between gap-3 text-sm transition-all bg-[#171923] border-zinc-800 cursor-grab`}>
                         <div className="flex items-center gap-4">
                            <FiMove className="text-zinc-600" />
@@ -618,7 +612,6 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3 bg-[#171923] border border-zinc-800 rounded-xl px-4 py-1"><FiLinkedin className="text-blue-500 text-lg shrink-0" /><input type="url" placeholder="LinkedIn URL" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} className="w-full bg-transparent border-0 py-2.5 text-sm text-white focus:outline-none" /></div>
                   <button type="submit" className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Save Links</button>
                 </form>
-
                 <div className="bg-[#111319] border border-zinc-800 rounded-2xl p-6 space-y-4">
                   <h2 className="text-lg font-bold flex items-center gap-2"><FiFileText className="text-indigo-500" /> Dynamic CV Downloader</h2>
                   <label className="w-full bg-[#171923] border border-zinc-800 rounded-xl px-4 py-3.5 text-xs font-medium flex items-center justify-center gap-2 text-zinc-400 cursor-pointer hover:bg-zinc-800/50 transition-colors">
