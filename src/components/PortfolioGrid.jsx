@@ -11,7 +11,7 @@ export default function PortfolioGrid() {
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(["All"]);
   const [selectedVideo, setSelectedVideo] = useState(null);
-  const [glowColor, setGlowColor] = useState("#4f46e5"); // 🎨 اللون الديناميكي
+  const [glowColor, setGlowColor] = useState("#4f46e5"); 
 
   useEffect(() => {
     const q = query(collection(db, "projects"));
@@ -20,21 +20,17 @@ export default function PortfolioGrid() {
       projs.sort((a, b) => (a.order || 0) - (b.order || 0));
       setProjects(projs);
     });
-
-    const docRef = doc(db, "portfolio", "settings");
-    const unsubscribeSettings = onSnapshot(docRef, (docSnap) => {
+    const unsubscribeSettings = onSnapshot(doc(db, "portfolio", "settings"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setCategories(["All", ...(data.categories || ["Commercials", "Motion Graphics", "Social Media"])]);
         if(data.glowColor1) setGlowColor(data.glowColor1);
       }
     });
-
     return () => { unsubscribeProjects(); unsubscribeSettings(); };
   }, []);
 
   const filteredProjects = activeFilter === "All" ? projects : projects.filter(p => p.category === activeFilter);
-
   const getEmbedUrl = (url) => {
     if (!url) return null;
     const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/);
@@ -45,18 +41,17 @@ export default function PortfolioGrid() {
   };
 
   return (
-    <section id="projects" className="py-24 px-6 max-w-7xl mx-auto relative z-10">
-      <div className="text-center mb-16">
-        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-4xl md:text-5xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
+    <section id="projects" className="py-20 md:py-24 px-5 md:px-6 max-w-7xl mx-auto relative z-10 overflow-hidden">
+      <div className="text-center mb-10 md:mb-16">
+        <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 md:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-500">
           Selected Work
         </motion.h2>
-        <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-zinc-500 text-sm font-medium uppercase tracking-[0.2em]">
+        <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-zinc-500 text-[10px] md:text-sm font-medium uppercase tracking-[0.2em]">
           A collection of my recent projects
         </motion.p>
       </div>
 
-      {/* 🎛️ أزرار الفلتر تتلون ديناميكياً */}
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex flex-wrap justify-center gap-3 mb-14">
+      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex flex-wrap justify-center gap-2 md:gap-3 mb-10 md:mb-14">
         {categories.map((category) => (
           <button
             key={category}
@@ -66,36 +61,34 @@ export default function PortfolioGrid() {
               boxShadow: activeFilter === category ? `0 0 20px ${glowColor}60` : 'none',
               color: activeFilter === category ? '#fff' : '#a1a1aa'
             }}
-            className="px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all duration-300 border border-white/10 hover:bg-white/10"
+            className="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-[10px] sm:text-xs md:text-sm font-semibold tracking-wide transition-all duration-300 border border-white/10 hover:bg-white/10"
           >
             {category}
           </button>
         ))}
       </motion.div>
 
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" style={{ perspective: "1200px" }}>
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8" style={{ perspective: "1200px" }}>
         <AnimatePresence mode="popLayout">
           {filteredProjects.map((project) => (
-            <motion.div layout key={project.id} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.4, type: "spring" }}>
-              {/* ⚡ تمرير اللون للكارت */}
+            <motion.div layout key={project.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.4 }}>
               <ProjectCard project={project} onClick={() => setSelectedVideo(project)} glowColor={glowColor} />
             </motion.div>
           ))}
         </AnimatePresence>
       </motion.div>
 
-      {/* Modal ... */}
       <AnimatePresence>
         {selectedVideo && (
-          <motion.div initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(10px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4 md:p-10">
-            <button onClick={() => setSelectedVideo(null)} className="absolute top-8 right-6 md:top-12 md:right-12 text-white hover:text-red-400 transition-all p-4 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 backdrop-blur-md shadow-2xl hover:rotate-90">
-              <FiX size={24} />
+          <motion.div initial={{ opacity: 0, backdropFilter: "blur(0px)" }} animate={{ opacity: 1, backdropFilter: "blur(10px)" }} exit={{ opacity: 0, backdropFilter: "blur(0px)" }} className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-2 sm:p-4 md:p-10">
+            <button onClick={() => setSelectedVideo(null)} className="absolute top-6 right-4 md:top-12 md:right-12 text-white hover:text-red-400 transition-all p-3 md:p-4 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 backdrop-blur-md shadow-2xl z-[1000]">
+              <FiX className="text-lg md:text-2xl" />
             </button>
-            <motion.div initial={{ scale: 0.9, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 40 }} className="relative w-full max-w-6xl aspect-video rounded-3xl overflow-hidden border border-white/10 bg-black shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="relative w-full max-w-6xl aspect-video rounded-xl md:rounded-3xl overflow-hidden border border-white/10 bg-black shadow-2xl">
               {selectedVideo.videoUrl ? (
                 <iframe src={getEmbedUrl(selectedVideo.videoUrl)} className="absolute top-0 left-0 w-full h-full" frameBorder="0" allow="autoplay; fullscreen" allowFullScreen></iframe>
               ) : (
-                <div className="flex items-center justify-center w-full h-full text-zinc-500 font-medium">Video URL is missing...</div>
+                <div className="flex items-center justify-center w-full h-full text-zinc-500 font-medium text-xs md:text-base">Video URL is missing...</div>
               )}
             </motion.div>
           </motion.div>
